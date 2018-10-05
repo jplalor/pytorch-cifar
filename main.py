@@ -148,8 +148,8 @@ def test(epoch):
             'acc': acc,
             'epoch': epoch,
         }
-        if not os.path.isdir('checkpoint'):
-            os.mkdir('checkpoint')
+        if not os.path.isdir('{}/checkpoint'.format(args.prediction_dir)):
+            os.mkdir('{}/checkpoint'.format(args.prediction_dir))
         torch.save(state, '{}/checkpoint/ckpt.t7'.format(args.prediction_dir))
         best_acc = acc
         print('epoch: {}, best acc: {}'.format(epoch, best_acc))
