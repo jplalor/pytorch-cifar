@@ -15,7 +15,7 @@ import csv
 import os
 
 from models import *
-from utils import progress_bar
+#from utils import progress_bar
 
 from my_data_downloaders import my_CIFAR
 

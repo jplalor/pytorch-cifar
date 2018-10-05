@@ -407,7 +407,7 @@ class my_CIFAR10(data.Dataset):
         return fmt_str
 
 
-class CIFAR100(CIFAR10):
+class my_CIFAR100(my_CIFAR10):
     """`CIFAR100 <https://www.cs.toronto.edu/~kriz/cifar.html>`_ Dataset.
     This is a subclass of the `CIFAR10` Dataset.
     """
