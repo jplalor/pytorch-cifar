@@ -10,16 +10,19 @@ import torch.backends.cudnn as cudnn
 import torchvision
 import torchvision.transforms as transforms
 
-import os
 import argparse
+import csv
+import os
 
 from models import *
 from utils import progress_bar
 
+from my_data_downloaders import my_CIFAR
 
 parser = argparse.ArgumentParser(description='PyTorch CIFAR10 Training')
 parser.add_argument('--lr', default=0.1, type=float, help='learning rate')
 parser.add_argument('--resume', '-r', action='store_true', help='resume from checkpoint')
+parser.add_argument('-p', '--prediction-dir', help='where to write predictions')
 args = parser.parse_args()
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -40,18 +43,18 @@ transform_test = transforms.Compose([
     transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
 ])
 
-trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform_train)
+trainset = my_CIFAR10(root='./data', train=True, download=True, transform=transform_train)
 trainloader = torch.utils.data.DataLoader(trainset, batch_size=128, shuffle=True, num_workers=2)
 
-testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform_test)
+testset = my_CIFAR10(root='./data', train=False, download=True, transform=transform_test)
 testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False, num_workers=2)
 
 classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 
 # Model
 print('==> Building model..')
-# net = VGG('VGG19')
-net = ResNet18()
+net = VGG('VGG16')
+# net = ResNet18()
 # net = PreActResNet18()
 # net = GoogLeNet()
 # net = DenseNet121()
@@ -78,6 +81,13 @@ if args.resume:
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=0.9, weight_decay=5e-4)
 
+train_file = open('{}/train_CIFAR_VGG16.csv'.format(args.prediction_dir), 'w')
+train_writer = csv.writer(train_file, delimiter=',')
+train_writer.writerow(['imageID', 'epoch', 'label', 'prediction'])
+test_file = open('{}/test_CIFAR_VGG16.csv'.format(args.prediction_dir), 'w')
+test_writer = csv.writer(test_file, delimiter=',')
+test_writer.writerow(['imageID', 'epoch', 'label', 'prediction'])
+
 # Training
 def train(epoch):
     print('\nEpoch: %d' % epoch)
@@ -85,7 +95,7 @@ def train(epoch):
     train_loss = 0
     correct = 0
     total = 0
-    for batch_idx, (inputs, targets) in enumerate(trainloader):
+    for batch_idx, (inputs, targets, label, _) in enumerate(trainloader):
         inputs, targets = inputs.to(device), targets.to(device)
         optimizer.zero_grad()
         outputs = net(inputs)
@@ -98,8 +108,12 @@ def train(epoch):
         total += targets.size(0)
         correct += predicted.eq(targets).sum().item()
 
-        progress_bar(batch_idx, len(trainloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
-            % (train_loss/(batch_idx+1), 100.*correct/total, correct, total))
+        for i in range(len(inputs)):
+            row = [label[i].item(), epoch, targets[i].item(), predicted[i].item()]
+            train_writer.writerow(row)
+
+        #progress_bar(batch_idx, len(trainloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
+        #    % (train_loss/(batch_idx+1), 100.*correct/total, correct, total))
 
 def test(epoch):
     global best_acc
@@ -108,7 +122,7 @@ def test(epoch):
     correct = 0
     total = 0
     with torch.no_grad():
-        for batch_idx, (inputs, targets) in enumerate(testloader):
+        for batch_idx, (inputs, targets, label, _) in enumerate(testloader):
             inputs, targets = inputs.to(device), targets.to(device)
             outputs = net(inputs)
             loss = criterion(outputs, targets)
@@ -118,8 +132,12 @@ def test(epoch):
             total += targets.size(0)
             correct += predicted.eq(targets).sum().item()
 
-            progress_bar(batch_idx, len(testloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
-                % (test_loss/(batch_idx+1), 100.*correct/total, correct, total))
+            for i in range(len(inputs)):
+                row = [label[i].item(), epoch, targets[i].item(), predicted[i].item()]
+                test_writer.writerow(row)
+
+            #progress_bar(batch_idx, len(testloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
+            #    % (test_loss/(batch_idx+1), 100.*correct/total, correct, total))
 
     # Save checkpoint.
     acc = 100.*correct/total
@@ -132,8 +150,9 @@ def test(epoch):
         }
         if not os.path.isdir('checkpoint'):
             os.mkdir('checkpoint')
-        torch.save(state, './checkpoint/ckpt.t7')
+        torch.save(state, '{}/checkpoint/ckpt.t7'.format(args.prediction_dir))
         best_acc = acc
+        print('epoch: {}, best acc: {}'.format(epoch, best_acc))
 
 
 for epoch in range(start_epoch, start_epoch+200):
