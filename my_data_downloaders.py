@@ -318,7 +318,7 @@ class my_CIFAR10(data.Dataset):
 
             self.difficulties = torch.tensor(self.difficulties, dtype=torch.float)
         else:
-            self.difficulties = torch.tensor(np.zeros(len(self.data)), dtype=torch.float)
+            self.difficulties = torch.tensor(np.zeros(len(self.idx)), dtype=torch.float)
 
     def _load_meta(self):
         path = os.path.join(self.root, self.base_folder, self.meta['filename'])
@@ -341,11 +341,9 @@ class my_CIFAR10(data.Dataset):
             tuple: (image, target) where target is index of the target class.
         """
         if self.train:
-            img, target, label, diff = self.train_data[index], self.train_labels[index], \
-                                       self.idx[index], self.difficulties[index]
+            img, target = self.train_data[index], self.train_labels[index]
         else:
-            img, target, label, diff = self.test_data[index], self.test_labels[index], \
-                                       self.idx[index], self.difficulties[index]
+            img, target = self.test_data[index], self.test_labels[index]
 
         # doing this so that it is consistent with all other datasets
         # to return a PIL Image
@@ -357,9 +355,9 @@ class my_CIFAR10(data.Dataset):
         if self.target_transform is not None:
             target = self.target_transform(target)
 
-        idx = self.idx[index]
+        idx, diff = self.idx[index], self.difficulties[index]
 
-        return img, target, idx
+        return img, target, idx, diff
 
     def __len__(self):
         if self.train:

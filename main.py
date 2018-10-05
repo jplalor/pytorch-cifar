@@ -17,7 +17,7 @@ import os
 from models import *
 #from utils import progress_bar
 
-from my_data_downloaders import my_CIFAR
+from my_data_downloaders import my_CIFAR10
 
 parser = argparse.ArgumentParser(description='PyTorch CIFAR10 Training')
 parser.add_argument('--lr', default=0.1, type=float, help='learning rate')
