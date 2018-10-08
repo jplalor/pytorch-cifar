@@ -6,7 +6,7 @@ sbatch -p titanx-short --gres=gpu:2 --mem=80000 --output=logs/cifar_threshold_ba
 # test first
 #sbatch -p titanx-short --gres=gpu:2 --mem=80000 --output=logs/cifar_threshold_test.log --wrap="python -u main.py --threshold 2 --diff-dir /mnt/nfs/work1/hongyu/lalor/data/irt-svi/CIFAR/ --threshold-type 1 -p /mnt/nfs/work1/hongyu/lalor/data/irt-svi/CIFAR/thresholds/"
 
-for t in $(seq -6 0.1 6)
+for t in $(seq -2.5 0.1 6.6)
 do
 sbatch -p titanx-short --gres=gpu:2 --mem=80000 --output=logs/cifar_threshold_$t.log --wrap="python -u main.py --threshold $t --diff-dir /mnt/nfs/work1/hongyu/lalor/data/irt-svi/CIFAR/ --threshold-type 1 -p /mnt/nfs/work1/hongyu/lalor/data/irt-svi/CIFAR/thresholds/"
 sbatch -p titanx-short --gres=gpu:2 --mem=80000 --output=logs/cifar_threshold_upper_bound_$t.log --wrap="python -u main.py --threshold $t --diff-dir /mnt/nfs/work1/hongyu/lalor/data/irt-svi/CIFAR/ --threshold-type 2 -p /mnt/nfs/work1/hongyu/lalor/data/irt-svi/CIFAR/thresholds/"
