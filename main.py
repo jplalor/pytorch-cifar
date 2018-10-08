@@ -1,6 +1,8 @@
 '''Train CIFAR10 with PyTorch.'''
 from __future__ import print_function
 
+import numpy as np
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -23,6 +25,11 @@ parser = argparse.ArgumentParser(description='PyTorch CIFAR10 Training')
 parser.add_argument('--lr', default=0.1, type=float, help='learning rate')
 parser.add_argument('--resume', '-r', action='store_true', help='resume from checkpoint')
 parser.add_argument('-p', '--prediction-dir', help='where to write predictions')
+parser.add_argument('--threshold', type=float, default=3)
+parser.add_argument('--diff-dir', type=str)
+parser.add_argument('--threshold-type', type=int,
+                    help="0:none, 1: double side, 2: only below thresh, 3: only above thresh",
+                    default=0)
 args = parser.parse_args()
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -44,6 +51,17 @@ transform_test = transforms.Compose([
 ])
 
 trainset = my_CIFAR10(root='./data', train=True, download=True, transform=transform_train)
+if args.threshold_type == 1:
+    trainset_2 = [img for img in trainset if np.abs(img[3]) < args.threshold]
+elif args.threshold_type == 2:
+    trainset_2 = [img for img in trainset if img[3] < args.threshold]
+elif args.threshold_type == 3:
+    trainset_2 = [img for img in trainset if img[3] > args.threshold]
+else:  # ==0
+    trainset_2 = trainset
+
+trainset = trainset_2
+print('Training set size (threshold={}): {}'.format(args.threshold, len(trainset)))
 trainloader = torch.utils.data.DataLoader(trainset, batch_size=128, shuffle=True, num_workers=2)
 
 testset = my_CIFAR10(root='./data', train=False, download=True, transform=transform_test)
@@ -81,10 +99,10 @@ if args.resume:
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=0.9, weight_decay=5e-4)
 
-train_file = open('{}/train_CIFAR_VGG16.csv'.format(args.prediction_dir), 'w')
+train_file = open('{}/train_CIFAR_VGG16_{}_{}.csv'.format(args.prediction_dir, args.threshold_type, args.threshold), 'w')
 train_writer = csv.writer(train_file, delimiter=',')
 train_writer.writerow(['imageID', 'epoch', 'label', 'prediction'])
-test_file = open('{}/test_CIFAR_VGG16.csv'.format(args.prediction_dir), 'w')
+test_file = open('{}/test_CIFAR_VGG16_{}_{}.csv'.format(args.prediction_dir, args.threshold_type, args.threshold), 'w')
 test_writer = csv.writer(test_file, delimiter=',')
 test_writer.writerow(['imageID', 'epoch', 'label', 'prediction'])
 
