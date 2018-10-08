@@ -26,7 +26,7 @@ parser.add_argument('--lr', default=0.1, type=float, help='learning rate')
 parser.add_argument('--resume', '-r', action='store_true', help='resume from checkpoint')
 parser.add_argument('-p', '--prediction-dir', help='where to write predictions')
 parser.add_argument('--threshold', type=float, default=3)
-parser.add_argument('--diff-dir', type=str)
+parser.add_argument('--diff-dir', type=str, default=None)
 parser.add_argument('--threshold-type', type=int,
                     help="0:none, 1: double side, 2: only below thresh, 3: only above thresh",
                     default=0)
@@ -50,7 +50,7 @@ transform_test = transforms.Compose([
     transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
 ])
 
-trainset = my_CIFAR10(root='./data', train=True, download=True, transform=transform_train)
+trainset = my_CIFAR10(root='./data', train=True, download=True, transform=transform_train, diff_dir=args.diff_dir)
 if args.threshold_type == 1:
     trainset_2 = [img for img in trainset if np.abs(img[3]) < args.threshold]
 elif args.threshold_type == 2:
