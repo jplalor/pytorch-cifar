@@ -307,9 +307,9 @@ class my_CIFAR10(data.Dataset):
         self.difficulties = []
         if diff_dir is not None:
             if self.train:
-                diff_file = diff_dir + 'train_CIFAR_VGG16.csv.diffs'
+                diff_file = diff_dir + 'train_CIFAR_VGG16_0_0.0.csv.diffs'
             else:
-                diff_file = diff_dir + 'test_CIFAR_VGG16.csv.diffs'
+                diff_file = diff_dir + 'test_CIFAR_VGG16_0_0.0.csv.diffs'
             with open(diff_file, 'r') as infile:
                 diffreader = csv.reader(infile, delimiter=',')
 
