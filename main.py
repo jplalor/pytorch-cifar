@@ -173,6 +173,6 @@ def test(epoch):
         print('epoch: {}, best acc: {}'.format(epoch, best_acc))
 
 
-for epoch in range(start_epoch, start_epoch+200):
+for epoch in range(start_epoch, start_epoch+1000):
     train(epoch)
     test(epoch)
