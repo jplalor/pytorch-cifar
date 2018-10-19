@@ -62,6 +62,9 @@ else:  # ==0
 
 trainset = trainset_2
 print('Training set size (threshold={}): {}'.format(args.threshold, len(trainset)))
+target_counts = collections.Counter([m[1].item() for m in trainset])
+print(target_counts)
+
 trainloader = torch.utils.data.DataLoader(trainset, batch_size=128, shuffle=True, num_workers=2)
 
 testset = my_CIFAR10(root='./data', train=False, download=True, transform=transform_test)
